@@ -79,7 +79,7 @@ st.subheader("3. Correlation Heatmap")
 fig, ax = plt.subplots(figsize=(10,6))
 fig.patch.set_facecolor('#0F172A')
 ax.set_facecolor('#0F172A')
-sns.heatmap(..., cmap="coolwarm", annot=True, vmin=-1, vmax=1, ...)
+sns.heatmap(df[['Time','V1','V2','V3','V4','Amount','Class']].corr(), cmap="coolwarm", annot=True, ax=ax, vmin=-1, vmax=1, annot_kws={'color':'white'})
 ax.tick_params(colors='white')
 st.pyplot(fig)
 
