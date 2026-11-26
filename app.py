@@ -33,7 +33,7 @@ st.markdown("---")
 
 @st.cache_data
 def load_data():
-    return pd.read_csv("creditcard.csv")
+    return pd.read_csv("https://raw.githubusercontent.com/Ankit152/Credit-Card-Fraud-Detection/main/creditcard.csv")
 
 df = load_data()
 
