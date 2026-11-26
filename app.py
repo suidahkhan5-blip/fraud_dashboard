@@ -1,89 +1,91 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="Credit Card Fraud Dashboard", layout="wide")
-st.title("Credit Card Fraud Detection Dashboard")
-st.write("This dashboard shows how fraudulent transactions differ from normal transactions.")
+st.set_page_config(page_title="Credit Card Fraud Detection", layout="wide")
+
+# PREMIUM BANKING THEME - Dark Navy + Gold + Teal
+st.markdown("""
+<style>
+.stApp { background-color: #0F172A; }
+h1 { color: #FFFFFF !important; text-align: left; font-size: 42px !important; }
+h2, h3 { color: #F8FAFC !important; }
+p, label, span { color: #CBD5E1 !important; }
+div[data-testid="stMetric"] {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    padding: 22px; border-radius: 16px;
+    border: 1px solid #334155;
+    border-left: 4px solid #F59E0B;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+div[data-testid="stMetricLabel"] { color: #94A3B8 !important; font-size: 14px !important; }
+div[data-testid="stMetricValue"] { color: #FFFFFF !important; font-size: 30px !important; }
+section[data-testid="stSidebar"] { background-color: #1E293B !important; }
+div[data-testid="stExpander"] { background-color: #1E293B; }
+</style>
+""", unsafe_allow_html=True)
+
+st.title("💳 Credit Card Fraud Detection")
+st.markdown("**🔒 Secure Banking Analytics  |  Real-time Transaction Monitoring**")
+st.markdown("---")
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("https://raw.githubusercontent.com/nsethi31/Kaggle-Data-Credit-Card-Fraud-Detection/master/creditcard.csv")
-    return df
+    return pd.read_csv("creditcard.csv")
 
 df = load_data()
 
-# Sidebar Filters
-st.sidebar.header("Filters")
-class_filter = st.sidebar.multiselect(
-    "Select Transaction Type",
-    options=[0, 1],
-    default=[0, 1],
-    format_func=lambda x: "Fraud" if x == 1 else "Normal"
-)
-amount_filter = st.sidebar.slider(
-    "Maximum Amount",
-    0,
-    int(df['Amount'].max()),
-    int(df['Amount'].max())
-)
+# FILTERS
+st.sidebar.header("⚙️ Filters")
+txn_type = st.sidebar.radio("Transaction Type", ["All", "Normal", "Fraud"])
+max_amt = st.sidebar.slider("Maximum Amount", 0, int(df['Amount'].max()), int(df['Amount'].max()))
 
-filtered_df = df[(df['Class'].isin(class_filter)) & (df['Amount'] <= amount_filter)]
+if txn_type == "Fraud":
+    df = df[df['Class'] == 1]
+elif txn_type == "Normal":
+    df = df[df['Class'] == 0]
+df = df[df['Amount'] <= max_amt]
 
-# Key Metrics
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total Transactions", len(filtered_df))
-col2.metric("Fraud Cases", len(filtered_df[filtered_df['Class'] == 1]))
-col3.metric("Fraud Percentage", f"{filtered_df['Class'].mean()*100:.2f}%")
-col4.metric("Average Amount", f"${filtered_df['Amount'].mean():.2f}")
+# CARDS
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Total Transactions", f"{len(df):,}")
+c2.metric("Fraud Cases", f"{(df['Class']==1).sum():,}")
+c3.metric("Fraud Rate", f"{df['Class'].mean()*100:.2f}%")
+c4.metric("Avg Amount", f"${df['Amount'].mean():.2f}")
 
-# Graph 1
-st.subheader("1. Fraud vs Normal Transactions")
-fig1 = px.histogram(filtered_df, x='Class', color='Class', title="Fraud vs Normal Transactions")
-st.plotly_chart(fig1)
+# CHART 1 - Teal + Gold
+st.subheader("1. Distribution of Transaction Amount")
+fig1 = px.histogram(df, x="Amount", color="Class", color_discrete_map={0:"#14B8A6", 1:"#F59E0B"}, nbins=50, template="plotly_dark")
+fig1.update_layout(paper_bgcolor="#0F172A", plot_bgcolor="#0F172A")
+st.plotly_chart(fig1, use_container_width=True)
 
-# Graph 2
-st.subheader("2. Distribution of Transaction Amount")
-fig2, ax2 = plt.subplots()
-sns.histplot(filtered_df['Amount'], bins=50, ax=ax2)
-ax2.set_title("Distribution of Transaction Amount")
-ax2.set_xlabel("Amount")
-ax2.set_ylabel("Count")
-st.pyplot(fig2)
+# CHART 2
+st.subheader("2. Time vs Amount")
+fig2 = px.scatter(df, x="Time", y="Amount", color="Class", color_discrete_map={0:"#14B8A6", 1:"#F59E0B"}, opacity=0.6, template="plotly_dark")
+fig2.update_layout(paper_bgcolor="#0F172A", plot_bgcolor="#0F172A")
+st.plotly_chart(fig2, use_container_width=True)
 
-# Graph 3
-st.subheader("3. Time vs Amount")
-fig3 = px.scatter(
-    filtered_df.sample(min(1000, len(filtered_df))),
-    x='Time', y='Amount', color='Class',
-    title="Time vs Amount"
-)
-st.plotly_chart(fig3)
+# CHART 3
+st.subheader("3. Correlation Heatmap")
+fig, ax = plt.subplots(figsize=(10,6))
+fig.patch.set_facecolor('#0F172A')
+ax.set_facecolor('#0F172A')
+sns.heatmap(df[['Time','V1','V2','V3','V4','Amount','Class']].corr(), cmap="YlGnBu", annot=True, ax=ax, annot_kws={'color':'white'})
+ax.tick_params(colors='white')
+st.pyplot(fig)
 
-# Graph 4
-st.subheader("4. Correlation Heatmap")
-fig4, ax4 = plt.subplots(figsize=(10, 6))
-sns.heatmap(filtered_df[['V1', 'V2', 'V3', 'V4', 'Amount', 'Class']].corr(), annot=True, cmap='coolwarm', ax=ax4)
-ax4.set_title("Correlation Heatmap")
-st.pyplot(fig4)
+# CHART 4
+st.subheader("4. V1 vs V2 by Transaction Class")
+fig4 = px.scatter(df, x="V1", y="V2", color="Class", color_discrete_map={0:"#14B8A6", 1:"#F59E0B"}, opacity=0.6, template="plotly_dark")
+fig4.update_layout(paper_bgcolor="#0F172A", plot_bgcolor="#0F172A")
+st.plotly_chart(fig4, use_container_width=True)
 
-# Graph 5
-st.subheader("5. V1 vs V2 by Transaction Class")
-fig5 = px.scatter(
-    filtered_df.sample(min(1000, len(filtered_df))),
-    x='V1', y='V2', color='Class',
-    title="V1 vs V2 by Class"
-)
-st.plotly_chart(fig5)
+st.subheader("5. Key Findings")
+st.info("1. Fraud cases are very rare, only 0.17%")
+st.info("2. V2 and V4 have a strong relationship with fraud")
+st.info("3. Fraud transactions show a different pattern")
 
-# Raw Data
 if st.checkbox("Show Raw Data"):
-    st.dataframe(filtered_df.head(100))
-
-# Findings
-st.subheader("Key Findings")
-st.write("1. Fraud cases are very rare, only 0.17% of all transactions.")
-st.write("2. V2 and V4 have a strong relationship with fraud.")
-st.write("3. Fraud transactions show a different pattern in Amount compared to normal transactions.")
+    st.dataframe(df.head(20))
