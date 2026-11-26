@@ -51,7 +51,7 @@ df = load_data()
 
 st.sidebar.header("⚙️ Filters")
 txn_type = st.sidebar.radio("Transaction Type", ["All", "Normal", "Fraud"])
-max_amt = st.sidebar.slider("Maximum Amount", 0, int(df['Amount'].max()), int(df['Amount'].max()))
+max_amt = st.sidebar.slider("Maximum Amount", 0, 2500, 2500)
 
 if txn_type == "Fraud":
     df = df[df['Class'] == 1]
@@ -79,7 +79,7 @@ st.subheader("3. Correlation Heatmap")
 fig, ax = plt.subplots(figsize=(10,6))
 fig.patch.set_facecolor('#0F172A')
 ax.set_facecolor('#0F172A')
-sns.heatmap(df[['Time','V1','V2','V3','V4','Amount','Class']].corr(), cmap="YlGnBu", annot=True, ax=ax, annot_kws={'color':'white'})
+sns.heatmap(..., cmap="coolwarm", annot=True, vmin=-1, vmax=1, ...)
 ax.tick_params(colors='white')
 st.pyplot(fig)
 
