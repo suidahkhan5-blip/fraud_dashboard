@@ -10,7 +10,7 @@ st.write("This dashboard shows how fraudulent transactions differ from normal tr
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("creditcard.csv")
+    df = pd.read_csv("https://raw.githubusercontent.com/nsethi31/Kaggle-Data-Credit-Card-Fraud-Detection/master/creditcard.csv")
     return df
 
 df = load_data()
