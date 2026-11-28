@@ -31,7 +31,7 @@ st.markdown("---")
 @st.cache_data
 def load_data():
     np.random.seed(42)
-    n = 10000
+    n = 284807
     data = {}
     data['Time'] = np.random.randint(0, 172800, n)
     for i in range(1, 29):
@@ -39,7 +39,7 @@ def load_data():
     data['Amount'] = np.random.exponential(80, n).round(2)
     # 0.17% fraud jesa original me tha
     fraud = np.zeros(n, dtype=int)
-    fraud[np.random.choice(n, 17, replace=False)] = 1
+    fraud[np.random.choice(n, 492, replace=False)] = 1
     data['Class'] = fraud
     df = pd.DataFrame(data)
     # Fraud walo ka pattern thora alag
